@@ -78,6 +78,13 @@ export default function DiscordClone({ initialChannels }: DiscordCloneProps) {
     }
   }
 
+  const handleChannelRemoved = (channelId: string) => {
+    setChannels(prevChannels => prevChannels.filter(channel => channel.id !== channelId))
+    if (currentChannel && currentChannel.id === channelId) {
+      setCurrentChannel(channels.find(channel => channel.id !== channelId) || null)
+    }
+  }
+
   if (!username) {
     return <SignIn onSignIn={handleSignIn} />
   }
@@ -94,6 +101,7 @@ export default function DiscordClone({ initialChannels }: DiscordCloneProps) {
         currentChannel={currentChannel} 
         onSelectChannel={setCurrentChannel}
         onChannelAdded={handleChannelAdded}
+        onChannelRemoved={handleChannelRemoved}
       />
       <div className="flex flex-col flex-1">
         <Header 

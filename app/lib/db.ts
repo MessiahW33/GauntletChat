@@ -176,17 +176,12 @@ async function uploadFile(file: File): Promise<string> {
   }
 
   const fileExt = file.name.split('.').pop()
-  const timestamp = Date.now()
-  const randomString = Math.random().toString(36).substring(2, 15)
-  const fileName = `${timestamp}-${randomString}.${fileExt}`
+  const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`
 
   try {
     const { data, error } = await supabase.storage
       .from('discord-clone-files')
-      .upload(fileName, file, {
-        cacheControl: '3600',
-        upsert: false
-      })
+      .upload(fileName, file)
 
     if (error) {
       console.error('Supabase storage error:', error)
@@ -212,5 +207,33 @@ async function uploadFile(file: File): Promise<string> {
     console.error('Error in uploadFile:', error)
     throw error
   }
+}
+
+export async function removeChannel(channelId: string): Promise<void> {
+  console.log('Attempting to remove channel:', channelId)
+  
+  // First, delete all messages associated with this channel
+  const { error: messagesError } = await supabase
+    .from('messages')
+    .delete()
+    .eq('channel_id', channelId)
+
+  if (messagesError) {
+    console.error('Error deleting messages:', messagesError)
+    throw new Error(`Failed to delete messages: ${messagesError.message}`)
+  }
+
+  // Then, delete the channel itself
+  const { error: channelError } = await supabase
+    .from('channels')
+    .delete()
+    .eq('id', channelId)
+
+  if (channelError) {
+    console.error('Error deleting channel:', channelError)
+    throw new Error(`Failed to delete channel: ${channelError.message}`)
+  }
+
+  console.log('Channel removed successfully:', channelId)
 }
 
